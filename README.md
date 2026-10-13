@@ -61,3 +61,5 @@ Para editar una estructura que ya existe, usa **Abrir del juego** y elige su `.j
 ---
 
 Hecho por **Oliver** · [oliver8998.github.io/taller-planos](https://oliver8998.github.io/taller-planos/)
+
+© 2026 Oliver. Todos los derechos reservados. Prohibida la copia, modificación o redistribución del código sin permiso del autor.
