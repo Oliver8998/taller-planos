@@ -387,6 +387,44 @@ body:not(.es3d) #bMuros{display:none}
 }
 @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
 
+/* ---- modo paseo ---- */
+.fbtnPasear{color:var(--accent)}
+body.fpOn #centro3d{position:fixed!important;inset:0!important;z-index:7000;display:block!important}
+body.fpOn #centro3d>:not(canvas){display:none!important}
+#fpCapa{position:fixed;inset:0;z-index:7100;cursor:crosshair;touch-action:none;-webkit-user-select:none;user-select:none}
+#fpCapa[hidden]{display:none}
+.fpMira{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.55);pointer-events:none}
+.fpInfo{position:absolute;left:14px;top:14px;padding:6px 11px;border-radius:999px;background:rgba(10,13,17,.72);color:#e6eaee;font:500 12.5px var(--f-mono);pointer-events:none}
+.fpSalirM{position:absolute;right:14px;top:12px;display:none}
+.fpJoy{position:absolute;width:120px;height:120px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(10,13,17,.25);display:none;pointer-events:none}
+.fpJoy.on{display:block}
+.fpJoyB{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:rgba(242,169,59,.85)}
+.fpBtnsM{position:absolute;right:16px;bottom:22px;display:none;gap:12px}
+.fpB{width:74px;height:74px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(10,13,17,.55);color:#fff;font:600 13px var(--f-txt)}
+.fpB.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+body.fpTactil .fpSalirM{display:inline-flex}
+body.fpTactil .fpBtnsM{display:flex}
+body.fpTactil .fpMira{display:block}
+.fpPausa{position:absolute;inset:0;display:grid;place-items:center;background:rgba(8,10,13,.62);padding:16px;cursor:default;overflow:auto}
+.fpPausa[hidden]{display:none}
+.fpCarta{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;max-width:560px;width:100%;box-shadow:var(--sombra);max-height:calc(100% - 8px);overflow:auto}
+.fpCarta h2{font:700 26px/1 var(--f-disp);letter-spacing:.04em;text-transform:uppercase;margin:0 0 8px}
+.fpTxt{color:var(--muted);margin:0 0 12px}
+.fpTeclas{list-style:none;padding:0;margin:0 0 10px;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;font-size:13.5px}
+.fpTeclas b{font-family:var(--f-mono);color:var(--accent);font-weight:600}
+.soloTactil{display:none}
+body.fpTactil .soloTactil{display:grid;grid-template-columns:1fr}
+body.fpTactil .soloPC{display:none}
+.fpNota{font-size:12.5px;color:var(--dim);margin:0 0 14px}
+.fpAcc{display:flex;gap:8px;flex-wrap:wrap}
+.fpConf{margin-top:16px;border-top:1px solid var(--line);padding-top:14px}
+.fpGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-bottom:12px}
+.fpGrid label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
+.fpNum{display:flex;align-items:center;gap:6px}
+.fpNum input{width:100%;min-width:0;background:var(--panel2);border:1px solid var(--line2);border-radius:7px;padding:7px 8px;font-size:15px}
+.fpNum em{font-style:normal;color:var(--dim);font-size:12px;min-width:28px}
+@media (max-width:560px){.fpGrid,.fpTeclas{grid-template-columns:1fr}}
+
 .avatarC{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:700 12px/1 var(--f-txt)}
 .cuentaBox{display:flex;flex-direction:column;gap:10px;max-width:420px}
 .cuentaBox .campoEmail{width:100%;padding:11px 12px;border-radius:9px;border:1px solid var(--line2);background:var(--panel2);font-size:16px}
@@ -547,6 +585,8 @@ body.conGate .app{visibility:hidden}
     </div>
 
     <div class="flot ladoDer vidrio" aria-label="Edición y cámara">
+      <button class="fbtn fbtnPasear" id="bPasear" title="Pasear en primera persona, a escala del juego" aria-label="Pasear en primera persona"></button>
+      <div class="sepH"></div>
       <button class="fbtn" id="bMano" data-ico="mano" aria-pressed="false" title="Mover la pantalla (H, o mantén pulsado Espacio)" aria-label="Mover la pantalla"></button>
       <button class="fbtn conEt" id="bMuros" data-ico="muros" title="Paredes: altas, cortadas, bajas u ocultas (C)" aria-label="Paredes"><span class="fEt" id="etMuros">Cortadas</span></button>
       <div class="sepH"></div>
@@ -2988,6 +3028,227 @@ function bienvenida(){
 const _ayudaClick=ayudaClick; ayudaClick=function(){ _ayudaClick(); const b=document.createElement('button'); b.className='btn'; b.style.marginTop='6px'; b.textContent='Ver los primeros pasos'; b.onclick=bienvenida; $('modalCuerpo').firstChild.append(b); };
 
 /* =========================================================
+   MODO PASEO: recorrer el edificio en primera persona, a escala real
+   1 unidad = 1 m (igual que el juego). Medidas del jugador ajustables.
+   ========================================================= */
+Object.assign(ICOP,{pasear:'<circle cx="12" cy="4.6" r="2"/><path d="M10.2 21l1.6-6.2L9.6 12l1-4.2 3.2 1 2.2 3.2M11.8 14.8l3 2.2 1 4M10.6 7.8 7.6 9.6 6.6 12.6"/>'});
+// Valores de MiJuego (CharacterController 1,80 × radio 0,25 + piel 0,03, ojos 1,60, FOV 65°, andar 4 / correr 7, salto 1,30, escalón 0,20)
+const FP_DEF={altura:1.8,ojos:1.6,radio:0.25,escalon:0.2,andar:4,correr:7,salto:1.3,fov:65,agachado:1.2,gravedad:15,sens:1};
+const FP_PIEL=0.03;
+const FP_CAMPOS=[
+  ['altura','Altura del personaje','m',1,2.5,.01],['ojos','Altura de la cámara (ojos)','m',.8,2.4,.01],['radio','Radio (ancho/2)','m',.15,.6,.01],
+  ['escalon','Escalón que sube solo','m',.1,.8,.01],['andar','Velocidad andando','m/s',1,10,.1],['correr','Velocidad corriendo','m/s',1,15,.1],
+  ['salto','Altura de salto','m',.2,3,.05],['agachado','Altura agachado','m',.6,1.8,.01],['fov','Campo de visión vertical (FOV)','°',40,110,1],
+  ['gravedad','Gravedad','m/s²',5,40,.5],['sens','Sensibilidad del ratón','×',.2,3,.1]];
+function fpConf(){ let c={}; try{ c=JSON.parse(lsGet('taller-fp')||'{}')||{}; }catch(e){} return Object.assign({},FP_DEF,c); }
+const FPS={on:false};
+function fpMontar(){
+  if($('fpCapa')) return;
+  const c=document.createElement('div'); c.id='fpCapa'; c.hidden=true;
+  c.innerHTML=`<div class="fpMira" aria-hidden="true"></div>
+  <div class="fpInfo" id="fpInfo"></div>
+  <button class="fpSalirM btn" id="fpSalirM" type="button">Salir</button>
+  <div class="fpJoy" id="fpJoy" aria-hidden="true"><div class="fpJoyB" id="fpJoyB"></div></div>
+  <div class="fpBtnsM"><button class="fpB" id="fpAgM" type="button">Agachar</button><button class="fpB" id="fpSaltoM" type="button">Saltar</button></div>
+  <div class="fpPausa" id="fpPausa">
+    <div class="fpCarta">
+      <h2>Modo paseo</h2>
+      <p class="fpTxt">Recorre el edificio con las medidas del personaje del juego para comprobar puertas, pasillos, escaleras y alturas.</p>
+      <ul class="fpTeclas soloPC"><li><b>W A S D</b> o flechas · moverte</li><li><b>Ratón</b> · mirar</li><li><b>Shift</b> · correr</li><li><b>Espacio</b> · saltar</li><li><b>C</b> o <b>Ctrl</b> · agacharte</li><li><b>Esc</b> · pausa</li></ul>
+      <ul class="fpTeclas soloTactil"><li><b>Mitad izquierda</b> · joystick para andar (al fondo, corres)</li><li><b>Mitad derecha</b> · arrastra para mirar</li></ul>
+      <p class="fpNota">Las puertas se cruzan como si estuvieran abiertas. En escaleras de mano y de caracol, avanza para subir y retrocede para bajar.</p>
+      <div class="fpAcc"><button class="btn prim" id="fpSeguir" type="button">Empezar</button><button class="btn" id="fpMedidas" type="button">Medidas del jugador</button><button class="btn" id="fpSalir" type="button">Salir del paseo</button></div>
+      <div class="fpConf" id="fpConf" hidden></div>
+    </div>
+  </div>`;
+  document.body.appendChild(c);
+  $('fpSalir').onclick=fpSalir; $('fpSalirM').onclick=fpSalir;
+  $('fpSeguir').onclick=()=>fpReanudar();
+  $('fpMedidas').onclick=()=>{ const f=$('fpConf'); f.hidden=!f.hidden; if(!f.hidden) fpPintarConf(); };
+  // ratón
+  c.addEventListener('click',e=>{ if(!FPS.on||FPS.tactil) return; if(e.target.closest('.fpCarta')) return; if(document.pointerLockElement!==c) fpReanudar(); });
+  document.addEventListener('pointerlockchange',()=>{ if(!FPS.on||FPS.tactil) return; if(document.pointerLockElement===c){ FPS.pausa=false; $('fpPausa').hidden=true; } else fpPausar(); });
+  document.addEventListener('mousemove',e=>{ if(!FPS.on||FPS.pausa||document.pointerLockElement!==c) return; fpMirar(e.movementX,e.movementY,.0022); });
+  // teclado (fase de captura: el editor no se entera mientras se pasea)
+  const tecla=(e,abajo)=>{ if(!FPS.on) return; const k=e.code;
+    if(abajo&&k==='Escape'){ if(FPS.tactil) fpPausar(); return; }
+    if(e.target&&e.target.closest&&e.target.closest('.fpConf')) return;
+    e.stopImmediatePropagation(); if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD','ControlLeft','ControlRight','KeyC','ShiftLeft','ShiftRight'].includes(k)) e.preventDefault();
+    if(abajo) FPS.teclas.add(k); else FPS.teclas.delete(k); };
+  document.addEventListener('keydown',e=>tecla(e,true),true);
+  document.addEventListener('keyup',e=>tecla(e,false),true);
+  window.addEventListener('blur',()=>FPS.teclas&&FPS.teclas.clear());
+  // táctil: joystick a la izquierda, mirar a la derecha
+  c.addEventListener('touchstart',e=>{ if(!FPS.on||FPS.pausa) return; if(e.target.closest('button')) return; e.preventDefault();
+    for(const t of e.changedTouches){ if(t.clientX<innerWidth*.45&&FPS.joyId==null){ FPS.joyId=t.identifier; FPS.joy0=[t.clientX,t.clientY]; FPS.joyV=[0,0]; const j=$('fpJoy'); j.style.left=(t.clientX-60)+'px'; j.style.top=(t.clientY-60)+'px'; j.classList.add('on'); $('fpJoyB').style.transform='translate(0,0)'; }
+      else if(FPS.lookId==null){ FPS.lookId=t.identifier; FPS.look0=[t.clientX,t.clientY]; } } },{passive:false});
+  c.addEventListener('touchmove',e=>{ if(!FPS.on) return; e.preventDefault();
+    for(const t of e.changedTouches){ if(t.identifier===FPS.joyId){ let dx=t.clientX-FPS.joy0[0], dy=t.clientY-FPS.joy0[1]; const l=Math.hypot(dx,dy), m=55; if(l>m){ dx*=m/l; dy*=m/l; } FPS.joyV=[dx/m,dy/m]; $('fpJoyB').style.transform=`translate(${dx}px,${dy}px)`; }
+      else if(t.identifier===FPS.lookId){ fpMirar(t.clientX-FPS.look0[0],t.clientY-FPS.look0[1],.005); FPS.look0=[t.clientX,t.clientY]; } } },{passive:false});
+  const fin=e=>{ for(const t of e.changedTouches){ if(t.identifier===FPS.joyId){ FPS.joyId=null; FPS.joyV=[0,0]; $('fpJoy').classList.remove('on'); } if(t.identifier===FPS.lookId) FPS.lookId=null; } };
+  c.addEventListener('touchend',fin); c.addEventListener('touchcancel',fin);
+  $('fpSaltoM').addEventListener('touchstart',e=>{ e.preventDefault(); FPS.saltoM=true; },{passive:false});
+  $('fpAgM').addEventListener('touchstart',e=>{ e.preventDefault(); FPS.agM=!FPS.agM; $('fpAgM').classList.toggle('on',FPS.agM); },{passive:false});
+}
+function fpPintarConf(){
+  const f=$('fpConf'); f.textContent=''; const c=fpConf();
+  const nota=document.createElement('p'); nota.className='fpNota'; nota.textContent='Por defecto van las de tu juego (MiJuego). Si las cambias en Unity, cámbialas aquí también; se guardan en este navegador. Al radio y la altura se les suma la piel de colisión de Unity (3 cm), como en el juego.'; f.appendChild(nota);
+  const g=document.createElement('div'); g.className='fpGrid';
+  for(const [k,et,u,mn,mx,st] of FP_CAMPOS){ const l=document.createElement('label'); const s=document.createElement('span'); s.textContent=et;
+    const w=document.createElement('div'); w.className='fpNum'; const i=document.createElement('input'); i.type='number'; i.min=mn; i.max=mx; i.step=st; i.value=c[k]; const uu=document.createElement('em'); uu.textContent=u;
+    i.onchange=()=>{ let v=parseFloat(String(i.value).replace(',','.')); if(!isFinite(v)) v=FP_DEF[k]; v=Math.max(mn,Math.min(mx,v)); i.value=v; const o=fpConf(); o[k]=v; lsSet('taller-fp',JSON.stringify(o)); fpAplicarConf(); };
+    w.append(i,uu); l.append(s,w); g.appendChild(l); }
+  f.appendChild(g);
+  const r=document.createElement('button'); r.className='btn'; r.type='button'; r.textContent='Volver a los valores por defecto'; r.onclick=()=>{ lsSet('taller-fp','{}'); fpPintarConf(); fpAplicarConf(); }; f.appendChild(r);
+}
+function fpAplicarConf(){ if(!FPS.on) return; FPS.c=fpConf(); V.cam.fov=FPS.c.fov; V.cam.updateProjectionMatrix(); }
+function fpMirar(dx,dy,k){ const s=k*(FPS.c.sens||1); FPS.yaw-=dx*s; FPS.pitch=Math.max(-1.52,Math.min(1.52,FPS.pitch-dy*s)); }
+/* ---- colisiones: cajas alineadas sacadas de la propia escena 3D ---- */
+function fpColisiones(){
+  const cajas=[], celdas=new Map(), Hh=H();
+  const meter=(b,tipo)=>{ const o={x0:b.min.x,x1:b.max.x,y0:b.min.y,y1:b.max.y,z0:b.min.z,z1:b.max.z,t:tipo}; const i=cajas.length; cajas.push(o);
+    for(let x=Math.floor(o.x0);x<=Math.floor(o.x1);x++) for(let z=Math.floor(o.z0);z<=Math.floor(o.z1);z++){ const k=x+','+z; let a=celdas.get(k); if(!a) celdas.set(k,a=[]); a.push(i); } };
+  V.grupo.updateMatrixWorld(true);
+  const bx=new THREE.Box3();
+  for(const ch of V.grupo.children){
+    const p=ch.userData&&ch.userData.fpP; const it=p&&CAT[p.id];
+    if(ch.geometry&&ch.geometry.type==='PlaneGeometry') continue; // terreno: suelo implícito
+    if(it&&(it.capa==='suelo'||it.capa==='luz'||it.capa==='mar')) continue;
+    let tipo='s';
+    if(it&&it.capa==='esc') tipo=(p.id==='escalera_mano'||p.id==='caracol')?'sube':'esc';
+    if(tipo==='sube'){ bx.setFromObject(ch); bx.expandByScalar(.05); meter(bx,'sube'); continue; }
+    const puerta=it&&it.capa==='vano'&&it.abre&&it.abre[0]===0&&!((p.props||{}).cerradura==='tapiada');
+    ch.traverse(m=>{ if(!m.isMesh) return; if(m.material&&m.material.isMeshBasicMaterial) return;
+      bx.setFromObject(m); if(bx.isEmpty()) return;
+      const sx=bx.max.x-bx.min.x, sz=bx.max.z-bx.min.z, sy=bx.max.y-bx.min.y;
+      if(puerta&&Math.min(sx,sz)<.5&&bx.min.y<=(Math.floor(bx.min.y/Hh)*Hh)+.05) return; // hoja de puerta: se cruza
+      if(sx<.01&&sz<.01) return; if(sy<.004) return;
+      meter(bx,tipo); });
+  }
+  // dónde hay sótano: ahí no hay suelo implícito a cota 0
+  const sot=new Set(); for(const n of niveles()) if(n<0){ const I=A.info[n]; if(I&&I.inte) for(const k of I.inte){ const [x,z]=k.split(',').map(Number); sot.add(x+','+(-z-1)); } }
+  return {cajas,celdas,sot};
+}
+function fpCerca(x0,x1,z0,z1){ const C=FPS.col, out=new Set();
+  for(let x=Math.floor(x0);x<=Math.floor(x1);x++) for(let z=Math.floor(z0);z<=Math.floor(z1);z++){ const a=C.celdas.get(x+','+z); if(a) for(const i of a) out.add(i); }
+  return [...out].map(i=>C.cajas[i]); }
+function fpSolape(px,py,pz,h,r,soloTipo){ const L=fpCerca(px-r,px+r,pz-r,pz+r), e=.001, res=[];
+  for(const b of L){ if(soloTipo?b.t!==soloTipo:b.t==='sube') continue;
+    if(px+r>b.x0+e&&px-r<b.x1-e&&pz+r>b.z0+e&&pz-r<b.z1-e&&py+h>b.y0+e&&py<b.y1-e) res.push(b); }
+  return res; }
+function fpSueloImplicito(x,z){ return FPS.col.sot.has(Math.floor(x)+','+Math.floor(z))?-1e9:0; }
+/* ---- entrar / salir ---- */
+function fpEntrar(){
+  if(!V.ok){ toast('El modo paseo necesita la vista 3D, y aquí no ha podido cargarse.'); return; }
+  fpMontar(); cerrarMenus&&cerrarMenus();
+  FPS.prev={vista:S.vista,muros:V.muros,corte:$('cCorte').checked,tejado:$('cTejado').checked,pos:V.cam.position.clone(),tgt:V.ctl.target.clone(),fov:V.cam.fov,sel:S.sel};
+  S.sel=null; S.vista='3d'; aplicarVista();
+  V.muros='alto'; $('sMuros').value='alto'; $('cCorte').checked=false; $('cTejado').checked=true;
+  FPS.on=true; FPS.c=fpConf(); FPS.teclas=new Set(); FPS.vy=0; FPS.suelo=true; FPS.agM=false; FPS.saltoM=false; FPS.joyV=[0,0]; FPS.joyId=FPS.lookId=null;
+  FPS.tactil=matchMedia('(pointer:coarse)').matches;
+  document.body.classList.add('fpOn'); document.body.classList.toggle('fpTactil',FPS.tactil);
+  $('fpCapa').hidden=false; $('fpConf').hidden=true; $('fpAgM').classList.remove('on');
+  V.ctl.enabled=false;
+  if(!FPS.luz){ FPS.luz=new THREE.DirectionalLight(0xfff0dc,.45); } V.scene.add(FPS.luz); V.scene.add(FPS.luz.target);
+  { const sol=typeof solLuz==='function'?solLuz():null; FPS.som={on:V.r.shadowMap.enabled,sol,cast:sol&&sol.castShadow,i:sol&&sol.intensity}; V.r.shadowMap.enabled=false; if(sol){ sol.castShadow=false; sol.intensity*=.5; } }
+  fpRecompilar();
+  setTimeout(()=>{ tam3D(); construir3D(); FPS.col=fpColisiones(); fpAparecer(); V.cam.fov=FPS.c.fov; V.cam.updateProjectionMatrix(); fpPausar(true); FPS.t=performance.now(); requestAnimationFrame(fpBucle); },30);
+}
+function fpAparecer(){
+  // delante de la puerta de entrada (por fuera) o, si no hay, en el borde sur mirando al edificio
+  const I=A.info[0]||A.info[niveles()[0]]; let px=P.ancho/2, pz=.8, fx=0, fz=1;
+  const pl=ESTPLANTA(0);
+  for(const p of (pl?pl.piezas:[])){ const it=CAT[p.id]; if(!it||it.capa!=='vano'||!it.abre||it.abre[0]!==0) continue;
+    const f=FRONT[p.rot||0]; const cs=celdas(p); const [cx,cz]=cs[Math.floor(cs.length/2)];
+    for(const s of [1,-1]){ const ox=cx+f[0]*s, oz=cz+f[1]*s; if(ox<0||oz<0||ox>=P.ancho||oz>=P.fondo) continue;
+      if(I&&I.inte&&!I.inte.has(K(ox,oz))){ px=cx+.5+f[0]*s*1.8; pz=cz+.5+f[1]*s*1.8; fx=-f[0]*s; fz=-f[1]*s; if(cs.length>1){ const [c2x,c2z]=cs[0]; px+=(c2x-cx)*.5; pz+=(c2z-cz)*.5; } break; } }
+    if(fx||fz!==1||pz!==.8) break; }
+  FPS.x=px; FPS.z=-pz; FPS.y=0;
+  // si cae dentro de algo, busca un hueco libre alrededor
+  const c=FPS.c; let ok=!fpSolape(FPS.x,FPS.y+.02,FPS.z,c.altura-.04,c.radio+FP_PIEL).length;
+  for(let r=.5;!ok&&r<12;r+=.5) for(let a=0;a<16&&!ok;a++){ const x=px+Math.cos(a/16*6.283)*r, z=-(pz+Math.sin(a/16*6.283)*r); if(!fpSolape(x,.02,z,c.altura-.04,c.radio+FP_PIEL).length){ FPS.x=x; FPS.z=z; ok=true; } }
+  FPS.yaw=Math.atan2(-fx,fz); FPS.pitch=0; FPS.camY=FPS.y+c.ojos; FPS.alt=c.altura;
+}
+function fpRecompilar(){ try{ for(const m of Object.values(V.mats||{})) m.needsUpdate=true; if(typeof MATF==='object') for(const m of Object.values(MATF)) m.needsUpdate=true; V.scene.traverse(o=>{ if(o.material){ (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>m.needsUpdate=true); } }); }catch(e){} }
+function fpPausar(inicio){ if(!FPS.on) return; FPS.pausa=true; FPS.teclas&&FPS.teclas.clear(); $('fpPausa').hidden=false; $('fpSeguir').textContent=inicio?'Empezar':'Seguir'; }
+function fpReanudar(){ if(!FPS.on) return; $('fpConf').hidden=true;
+  if(FPS.tactil){ FPS.pausa=false; $('fpPausa').hidden=true; return; }
+  try{ const r=$('fpCapa').requestPointerLock(); if(r&&r.catch) r.catch(()=>{ FPS.pausa=false; $('fpPausa').hidden=true; }); }catch(e){ FPS.pausa=false; $('fpPausa').hidden=true; } }
+function fpSalir(){
+  if(!FPS.on) return; FPS.on=false;
+  if(document.pointerLockElement) try{ document.exitPointerLock(); }catch(e){}
+  $('fpCapa').hidden=true; document.body.classList.remove('fpOn','fpTactil'); if(FPS.luz){ V.scene.remove(FPS.luz); V.scene.remove(FPS.luz.target); }
+  if(FPS.som){ V.r.shadowMap.enabled=FPS.som.on; if(FPS.som.sol){ FPS.som.sol.castShadow=FPS.som.cast; FPS.som.sol.intensity=FPS.som.i; } } fpRecompilar();
+  const p=FPS.prev; V.muros=p.muros; $('sMuros').value=p.muros; $('cCorte').checked=p.corte; $('cTejado').checked=p.tejado;
+  V.cam.fov=p.fov; V.cam.updateProjectionMatrix(); V.cam.position.copy(p.pos); V.ctl.target.copy(p.tgt); V.ctl.enabled=true; V.ctl.update();
+  S.vista=p.vista; aplicarVista(); if(typeof etiquetaMuros==='function') etiquetaMuros();
+}
+/* ---- física ---- */
+function fpBucle(now){
+  if(!FPS.on) return;
+  let dt=Math.min(.1,(now-FPS.t)/1000); FPS.t=now;
+  if(!FPS.pausa){ const pasos=Math.ceil(dt/.012); for(let i=0;i<pasos;i++) fpPaso(dt/pasos); }
+  const c=FPS.c, ag=FPS.alt<c.altura-.01, ojo=FPS.y+c.ojos*(FPS.alt/c.altura);
+  FPS.camY+=(ojo-FPS.camY)*(1-Math.exp(-dt*18));
+  V.cam.position.set(FPS.x,FPS.camY,FPS.z); V.cam.rotation.set(FPS.pitch,FPS.yaw,0,'YXZ'); V.r.render(V.scene,V.cam);
+  const Hh=H(), n=Math.floor((FPS.y+.3)/Hh); const nom=n===0?'Planta baja':n>0?'Planta '+n:'Sótano '+(-n);
+  $('fpInfo').textContent=nom+' · ojos a '+(FPS.camY-FPS.y).toFixed(2).replace('.',',')+' m del suelo'+(ag?' · agachado':'');
+  if(FPS.luz){ const f=new THREE.Vector3(0,0,-1).applyQuaternion(V.cam.quaternion); FPS.luz.position.copy(V.cam.position).addScaledVector(f,-2).add(new THREE.Vector3(0,.6,0)); FPS.luz.target.position.copy(V.cam.position).addScaledVector(f,4); FPS.luz.target.updateMatrixWorld(); }
+  requestAnimationFrame(fpBucle);
+}
+function fpPaso(dt){
+  const c=FPS.c, T=FPS.teclas, r=c.radio+FP_PIEL;
+  // entrada
+  let fw=0, st=0; if(T.has('KeyW')||T.has('ArrowUp')) fw+=1; if(T.has('KeyS')||T.has('ArrowDown')) fw-=1; if(T.has('KeyD')||T.has('ArrowRight')) st+=1; if(T.has('KeyA')||T.has('ArrowLeft')) st-=1;
+  let corre=T.has('ShiftLeft')||T.has('ShiftRight');
+  if(FPS.joyV[0]||FPS.joyV[1]){ st+=FPS.joyV[0]; fw-=FPS.joyV[1]; if(Math.hypot(FPS.joyV[0],FPS.joyV[1])>.92) corre=true; }
+  const quiereAg=T.has('KeyC')||T.has('ControlLeft')||T.has('ControlRight')||FPS.agM;
+  // agacharse / levantarse (solo si cabe)
+  const altObj=quiereAg?c.agachado:c.altura;
+  if(altObj<FPS.alt) FPS.alt=Math.max(altObj,FPS.alt-dt*6);
+  else if(altObj>FPS.alt){ const nh=Math.min(altObj,FPS.alt+dt*6); if(!fpSolape(FPS.x,FPS.y+.01,FPS.z,nh+FP_PIEL-.01,r).length) FPS.alt=nh; }
+  const h=FPS.alt+FP_PIEL, ag=FPS.alt<c.altura-.01;
+  const l=Math.hypot(fw,st); if(l>1){ fw/=l; st/=l; }
+  const vel=ag?c.andar*.5:(corre&&fw>0?c.correr:c.andar);
+  const sy=Math.sin(FPS.yaw), cy=Math.cos(FPS.yaw);
+  let dx=(-sy*fw+cy*st)*vel*dt, dz=(-cy*fw-sy*st)*vel*dt;
+  // escaleras de mano / caracol: avanzar sube, retroceder baja
+  const trepa=fpSolape(FPS.x,FPS.y,FPS.z,h,r+.15,'sube').length>0;
+  if(trepa&&fw!==0){ FPS.vy=0; const dy=fw*2.2*dt; FPS.y+=dy; if(fpSolape(FPS.x,FPS.y,FPS.z,h,r).length) FPS.y-=dy; FPS.suelo=false; }
+  // horizontal, eje a eje, con subida de escalón
+  fpEje('x',dx,h,r); fpEje('z',dz,h,r);
+  // salto y gravedad
+  if((T.has('Space')||FPS.saltoM)&&FPS.suelo&&!ag){ FPS.vy=Math.sqrt(2*c.gravedad*c.salto); FPS.suelo=false; }
+  FPS.saltoM=false;
+  if(!(trepa&&fw!==0)){
+    if(trepa&&FPS.vy<0) FPS.vy=Math.max(FPS.vy,-1.5);
+    FPS.vy-=c.gravedad*dt; const y0=FPS.y; let ny=FPS.y+FPS.vy*dt;
+    const L=fpCerca(FPS.x-r,FPS.x+r,FPS.z-r,FPS.z+r); FPS.suelo=false;
+    if(FPS.vy<=0){ let tope=fpSueloImplicito(FPS.x,FPS.z);
+      for(const b of L){ if(b.t==='sube') continue; if(FPS.x+r>b.x0&&FPS.x-r<b.x1&&FPS.z+r>b.z0&&FPS.z-r<b.z1&&b.y1<=y0+.02&&b.y1>tope) tope=b.y1; }
+      if(ny<=tope){ ny=tope; FPS.vy=0; FPS.suelo=true; } }
+    else { for(const b of L){ if(b.t==='sube') continue; if(FPS.x+r>b.x0&&FPS.x-r<b.x1&&FPS.z+r>b.z0&&FPS.z-r<b.z1&&b.y0>=y0+h-.02&&ny+h>b.y0){ ny=b.y0-h; FPS.vy=0; } } }
+    FPS.y=ny;
+  }
+  if(FPS.y<-60){ fpAparecer(); FPS.vy=0; }
+}
+function fpEje(eje,d,h,r){
+  if(!d) return;
+  if(eje==='x') FPS.x+=d; else FPS.z+=d;
+  const c=FPS.c; let golpes=fpSolape(FPS.x,FPS.y,FPS.z,h,r); if(!golpes.length) return;
+  // ¿se puede subir? (escalón normal, o peldaño de escalera, que es más alto)
+  let top=-1e9, max=c.escalon; for(const b of golpes){ top=Math.max(top,b.y1); if(b.t==='esc') max=Math.max(max,.62); }
+  if((FPS.suelo||FPS.vy<=0)&&top-FPS.y<=max+.001&&top>FPS.y&&!fpSolape(FPS.x,top+.001,FPS.z,h,r).length){ FPS.y=top; FPS.vy=0; FPS.suelo=true; return; }
+  // si no, empuja hacia fuera por ese eje
+  for(const b of golpes){ if(eje==='x'){ if(d>0) FPS.x=Math.min(FPS.x,b.x0-r-.0005); else FPS.x=Math.max(FPS.x,b.x1+r+.0005); }
+    else { if(d>0) FPS.z=Math.min(FPS.z,b.z0-r-.0005); else FPS.z=Math.max(FPS.z,b.z1+r+.0005); } }
+}
+// cada pieza 3D recuerda de qué pieza viene (para saber qué es puerta, escalera…)
+{ const _p3=pieza3D; pieza3D=function(p,base,Hh,verMar,n){ const a=V.grupo.children.length; const r=_p3(p,base,Hh,verMar,n); for(let i=a;i<V.grupo.children.length;i++) V.grupo.children[i].userData.fpP=p; return r; }; }
+// no tocar la escena mientras se pasea
+{ const _c3=construir3D; construir3D=function(){ if(FPS.on&&FPS.col) return; return _c3.apply(this,arguments); }; }
+
+/* =========================================================
    VERSIÓN WEB: acceso obligatorio con cuenta (Supabase)
    config.js define window.TALLER_CONFIG
    ========================================================= */
@@ -3215,6 +3476,7 @@ async function adminClick(){
 
 $('bCuenta').onclick=cuentaClick; $('bAdmin').onclick=adminClick; pintarCuenta();
 arrancar();
+$('bPasear').innerHTML=ico('pasear'); $('bPasear').onclick=fpEntrar;
 $('bCamC').onclick=()=>{ if(S.vista==='3d'&&V.ok) camaraPreset('persp'); else ajustarPlano(); };
 tabIns('sel'); if(V.ok){ cielo(); aplicarSombras(); } $('bAyuda').onclick=ayudaClick; setTimeout(()=>{ if(lsGet('taller-planos-bienvenida')!=='1'&&!habiaBorrador&&!(lista&&lista.length)) bienvenida(); else lsSet('taller-planos-bienvenida','1'); },1800); etiquetaMuros(); actualizarDeshacer(); marcarCatVista(); montarPaleta(); opcHerr();
 requestAnimationFrame(()=>{ if(!(S.vista==='3d'&&V.ok)) ajustarPlano(); });
