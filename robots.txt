@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://TU-SITIO/sitemap.xml
+Sitemap: https://oliver8998.github.io/taller-planos/sitemap.xml
