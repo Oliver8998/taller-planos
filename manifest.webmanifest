@@ -1,0 +1,11 @@
+{
+  "name": "Taller de Planos",
+  "short_name": "Planos",
+  "description": "Diseñador de casas y edificios en 2D y 3D",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f1419",
+  "theme_color": "#0f1419",
+  "lang": "es",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
